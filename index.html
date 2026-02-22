@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HAXNET OS – Black & Green Hacker Desktop</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Consolas, monospace;
+      background: #020304;
+      color: #0f0;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Desktop */
+    #desktop {
+      position: relative;
+      flex: 1;
+      background: radial-gradient(circle at top, #050b10 0, #020304 55%, #000 100%);
+      overflow: hidden;
+    }
+
+    /* Taskbar */
+    #taskbar {
+      height: 32px;
+      background: #050b10;
+      border-top: 1px solid #0f0;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      gap: 8px;
+      font-size: 12px;
+    }
+    #taskbar .task {
+      padding: 3px 8px;
+      border: 1px solid #0f0;
+      border-radius: 3px;
+      cursor: pointer;
+      background: #020304;
+    }
+    #taskbar .task.active {
+      background: #0f0;
+      color: #020304;
+    }
+    #clock {
+      margin-left: auto;
+      opacity: 0.8;
+    }
+
+    /* Desktop icons */
+    .icon {
+      position: absolute;
+      width: 80px;
+      text-align: center;
+      color: #0f0;
+      cursor: pointer;
+      font-size: 11px;
+      user-select: none;
+    }
+    .icon .icon-box {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 4px;
+      border-radius: 8px;
+      border: 1px solid #0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: rgba(0, 255, 0, 0.05);
+    }
+    .icon:hover .icon-box {
+      background: rgba(0, 255, 0, 0.15);
+    }
+
+    /* Windows */
+    .window {
+      position: absolute;
+      width: 600px;
+      height: 380px;
+      background: #020304;
+      border: 1px solid #0f0;
+      box-shadow: 0 0 12px rgba(0, 255, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+    }
+    .window.hidden { display: none; }
+    .window-header {
+      height: 26px;
+      background: linear-gradient(to right, #020304, #041208);
+      border-bottom: 1px solid #0f0;
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      cursor: move;
+      font-size: 12px;
+    }
+    .window-title {
+      flex: 1;
+    }
+    .window-buttons {
+      display: flex;
+      gap: 4px;
+    }
+    .window-button {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid #0f0;
+      cursor: pointer;
+    }
+    .window-button.close { background: #200; border-color: #f33; }
+    .window-button.min { background: #220; border-color: #ff0; }
+
+    .window-body {
+      flex: 1;
+      display: flex;
+      background: #020304;
+      color: #0f0;
+      font-size: 12px;
+    }
+
+    /* Terminal */
+    #terminal {
+      padding: 6px;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    #terminal .line { margin: 1px 0; }
+    #terminal .system { color: #0f0; }
+    #terminal .error { color: #f33; }
+    #terminal .info { color: #0ff; }
+    #terminal .warn { color: #ff0; }
+    #terminal .browser { color: #9cf; }
+    #terminal .game { color: #fc0; }
+
+    #terminal-input {
+      border-top: 1px solid #0f0;
+      display: flex;
+      padding: 3px 4px;
+    }
+    #terminal-prompt {
+      margin-right: 4px;
+    }
+    #terminal-cmd {
+      flex: 1;
+      background: #020304;
+      border: none;
+      outline: none;
+      color: #0f0;
+      font-family: inherit;
+      font-size: 12px;
+    }
+
+    /* Browser */
+    #browser-view {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+    }
+    #browser-bar {
+      padding: 4px;
+      border-bottom: 1px solid #0f0;
+      display: flex;
+      gap: 4px;
+      font-size: 12px;
+    }
+    #browser-url {
+      flex: 1;
+      background: #020304;
+      border: 1px solid #0f0;
+      color: #0f0;
+      padding: 2px 4px;
+      outline: none;
+    }
+    #browser-go {
+      background: #020304;
+      border: 1px solid #0f0;
+      color: #0f0;
+      padding: 2px 6px;
+      cursor: pointer;
+    }
+    #browser-content {
+      flex: 1;
+      padding: 6px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+    .site-title {
+      font-weight: bold;
+      color: #0f0;
+      margin-bottom: 4px;
+    }
+    .site-text {
+      color: #9f9;
+    }
+
+    /* Games */
+    .game-btn {
+      background:#020304;
+      border:1px solid #0f0;
+      color:#0f0;
+      padding:4px 8px;
+      margin:3px 0;
+      cursor:pointer;
+      font-size:12px;
+    }
+    .game-btn:hover {
+      background:#0f0;
+      color:#020304;
+    }
+
+    /* FBI popup */
+    #fbi-popup {
+      position: absolute;
+      right: 20px;
+      bottom: 60px;
+      width: 260px;
+      background: #200;
+      border: 1px solid #f33;
+      color: #fdd;
+      padding: 8px;
+      font-size: 12px;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.6);
+      display: none;
+    }
+    #fbi-popup button {
+      margin-top: 6px;
+      background: #400;
+      border: 1px solid #f33;
+      color: #fdd;
+      padding: 2px 6px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    /* Matrix overlay */
+    #matrix-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.12;
+      background-image: linear-gradient(to bottom, rgba(0,255,0,0.2) 1px, transparent 1px);
+      background-size: 100% 14px;
+    }
+
+    /* Glitch effect */
+    @keyframes glitch {
+      0% { transform: translate(0,0); }
+      20% { transform: translate(-2px,2px); }
+      40% { transform: translate(2px,-2px); }
+      60% { transform: translate(-1px,1px); }
+      80% { transform: translate(1px,-1px); }
+      100% { transform: translate(0,0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="desktop">
+    <div id="matrix-overlay"></div>
+
+    <!-- Desktop icons -->
+    <div class="icon" style="left:20px; top:20px;" data-app="terminal">
+      <div class="icon-box">_</div>
+      <div>Terminal</div>
+    </div>
+    <div class="icon" style="left:20px; top:110px;" data-app="browser">
+      <div class="icon-box">🌐</div>
+      <div>Browser</div>
+    </div>
+    <div class="icon" style="left:20px; top:200px;" data-app="cmds">
+      <div class="icon-box">📄</div>
+      <div>cmds.txt</div>
+    </div>
+    <div class="icon" style="left:20px; top:290px;" data-app="games">
+      <div class="icon-box">🎮</div>
+      <div>Games</div>
+    </div>
+
+    <!-- Terminal window -->
+    <div class="window" id="win-terminal" style="left:140px; top:60px; z-index:2;">
+      <div class="window-header" data-drag="true">
+        <div class="window-title">HAXNET Terminal</div>
+        <div class="window-buttons">
+          <div class="window-button min" data-minimize="win-terminal"></div>
+          <div class="window-button close" data-close="win-terminal"></div>
+        </div>
+      </div>
+      <div class="window-body" style="flex-direction:column;">
+        <div id="terminal"></div>
+        <div id="terminal-input">
+          <span id="terminal-prompt">guest@haxnet:~$</span>
+          <input id="terminal-cmd" autocomplete="off" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Browser window -->
+    <div class="window hidden" id="win-browser" style="left:180px; top:90px; z-index:1;">
+      <div class="window-header" data-drag="true">
+        <div class="window-title">HAXNET Browser</div>
+        <div class="window-buttons">
+          <div class="window-button min" data-minimize="win-browser"></div>
+          <div class="window-button close" data-close="win-browser"></div>
+        </div>
+      </div>
+      <div class="window-body">
+        <div id="browser-view">
+          <div id="browser-bar">
+            <span style="margin-right:4px;">URL / Search:</span>
+            <input id="browser-url" placeholder="4chan, videomedia.com, video media, darknet, news..." />
+            <button id="browser-go">Go</button>
+          </div>
+          <div id="browser-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Games window -->
+    <div class="window hidden" id="win-games" style="left:220px; top:120px; z-index:1;">
+      <div class="window-header" data-drag="true">
+        <div class="window-title">HAXNET Games</div>
+        <div class="window-buttons">
+          <div class="window-button min" data-minimize="win-games"></div>
+          <div class="window-button close" data-close="win-games"></div>
+        </div>
+      </div>
+      <div class="window-body" id="games-body" style="padding:10px; flex-direction:column;">
+        <div style="font-size:14px; margin-bottom:6px;">Installed Games:</div>
+        <button class="game-btn" data-game="CyberStrike">CyberStrike</button>
+        <button class="game-btn" data-game="BlockWorld">BlockWorld</button>
+        <button class="game-btn" data-game="BattleZone">BattleZone</button>
+        <div id="game-status" style="margin-top:10px; color:#0f0; white-space:pre-wrap;"></div>
+      </div>
+    </div>
+
+    <!-- FBI popup -->
+    <div id="fbi-popup">
+      <strong>FBI WARNING!</strong><br/>
+      Your network activity has been flagged for unusual traffic patterns.<br/>
+      This is a simulated warning. Nothing actually happens.<br/>
+      <button id="fbi-close">Dismiss</button>
+    </div>
+  </div>
+
+  <div id="taskbar">
+    <div class="task" data-task="terminal">Terminal</div>
+    <div class="task" data-task="browser">Browser</div>
+    <div class="task" data-task="games">Games</div>
+    <div id="clock"></div>
+  </div>
+
+  <script>
+    const SAVE_KEY = "haxnet_os_save_v1";
+    const state = {
+      fame: 0,
+      groupName: null,
+      abilities: { ddos: false, hackGames: false },
+      lastFBIWarning: Date.now(),
+    };
+
+    const desktop = document.getElementById("desktop");
+    const winTerminal = document.getElementById("win-terminal");
+    const winBrowser = document.getElementById("win-browser");
+    const winGames = document.getElementById("win-games");
+    const fbiPopup = document.getElementById("fbi-popup");
+    const fbiClose = document.getElementById("fbi-close");
+    const gameStatus = document.getElementById("game-status");
+
+    function bringToFront(win) {
+      const windows = document.querySelectorAll(".window");
+      let maxZ = 1;
+      windows.forEach(w => {
+        const z = parseInt(window.getComputedStyle(w).zIndex || "1", 10);
+        if (z > maxZ) maxZ = z;
+      });
+      win.style.zIndex = maxZ + 1;
+    }
+
+    function showWindow(id) {
+      const win = document.getElementById(id);
+      win.classList.remove("hidden");
+      bringToFront(win);
+      updateTaskbarActive();
+    }
+
+    function hideWindow(id) {
+      const win = document.getElementById(id);
+      win.classList.add("hidden");
+      updateTaskbarActive();
+    }
+
+    function toggleWindow(id) {
+      const win = document.getElementById(id);
+      if (win.classList.contains("hidden")) showWindow(id);
+      else hideWindow(id);
+    }
+
+    let dragWin = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    desktop.addEventListener("mousedown", e => {
+      const header = e.target.closest(".window-header");
+      if (!header) return;
+      const win = header.parentElement;
+      dragWin = win;
+      bringToFront(win);
+      const rect = win.getBoundingClientRect();
+      dragOffsetX = e.clientX - rect.left;
+      dragOffsetY = e.clientY - rect.top;
+    });
+
+    window.addEventListener("mousemove", e => {
+      if (!dragWin) return;
+      dragWin.style.left = (e.clientX - dragOffsetX) + "px";
+      dragWin.style.top = (e.clientY - dragOffsetY) + "px";
+    });
+
+    window.addEventListener("mouseup", () => {
+      dragWin = null;
+    });
+
+    document.addEventListener("click", e => {
+      const closeBtn = e.target.getAttribute("data-close");
+      const minBtn = e.target.getAttribute("data-minimize");
+
+      if (minBtn) hideWindow(minBtn);
+
+      if (closeBtn) {
+        hideWindow(closeBtn);
+
+        if (closeBtn === "win-terminal") {
+          term.innerHTML = "";
+          termInput.value = "";
+          printSystem("Booting HAXNET Terminal...");
+          printSystem("Type 'help' to begin.");
+        }
+      }
+    });
+
+    document.querySelectorAll(".icon").forEach(icon => {
+      icon.addEventListener("dblclick", () => {
+        const app = icon.getAttribute("data-app");
+        if (app === "terminal") showWindow("win-terminal");
+        if (app === "browser") showWindow("win-browser");
+        if (app === "games") showWindow("win-games");
+        if (app === "cmds") {
+          showWindow("win-terminal");
+          printSystem("Opening cmds.txt...");
+          printSystem(CMDS_TXT);
+        }
+      });
+    });
+
+    function updateTaskbarActive() {
+      const tasks = document.querySelectorAll("#taskbar .task");
+      tasks.forEach(t => {
+        const app = t.getAttribute("data-task");
+        let winId = null;
+        if (app === "terminal") winId = "win-terminal";
+        if (app === "browser") winId = "win-browser";
+        if (app === "games") winId = "win-games";
+        if (!winId) return;
+        const win = document.getElementById(winId);
+        if (win.classList.contains("hidden")) t.classList.remove("active");
+        else t.classList.add("active");
+      });
+    }
+
+    document.querySelectorAll("#taskbar .task").forEach(task => {
+      task.addEventListener("click", () => {
+        const app = task.getAttribute("data-task");
+        if (app === "terminal") toggleWindow("win-terminal");
+        if (app === "browser") toggleWindow("win-browser");
+        if (app === "games") toggleWindow("win-games");
+      });
+    });
+
+    function updateClock() {
+      document.getElementById("clock").textContent =
+        new Date().toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    const term = document.getElementById("terminal");
+    const termInput = document.getElementById("terminal-cmd");
+
+    const CMDS_TXT = `
+HAXNET COMMAND REFERENCE
+
+help            - Show basic help.
+cmds            - List all documented commands.
+open cmds.txt   - Show this command reference.
+clear           - Clear the terminal.
+save            - Save your progress.
+load            - Load your progress.
+stats           - Show your hacker stats.
+browser         - Focus the browser window.
+ddos <target>   - Simulate a DDoS attack.
+hack_game [name]- Hack a game (opens Games app).
+whoami          - Show your identity.
+fbi             - Trigger an FBI warning.
+play_snake      - Tiny terminal mini-game.
+
+filler_001..filler_400
+  Generic hacking utilities (demo only).
+`;
+
+    function printLine(text, cls = "system") {
+      const div = document.createElement("div");
+      div.className = "line " + cls;
+      div.textContent = text;
+      term.appendChild(div);
+      term.scrollTop = term.scrollHeight;
+    }
+    const printSystem = t => printLine(t, "system");
+    const printError  = t => printLine(t, "error");
+    const printInfo   = t => printLine(t, "info");
+    const printWarn   = t => printLine(t, "warn");
+    const printBrowserLog = t => printLine(t, "browser");
+    const printGame   = t => printLine(t, "game");
+
+    function showAnonymousGlitch() {
+      const overlay = document.createElement("div");
+      overlay.style.position = "absolute";
+      overlay.style.inset = "0";
+      overlay.style.background = "rgba(0,0,0,0.8)";
+      overlay.style.color = "#0f0";
+      overlay.style.fontSize = "48px";
+      overlay.style.display = "flex";
+      overlay.style.alignItems = "center";
+      overlay.style.justifyContent = "center";
+      overlay.style.fontFamily = "Consolas, monospace";
+      overlay.style.zIndex = "9999";
+      overlay.style.textShadow = "0 0 10px #0f0";
+      overlay.style.animation = "glitch 0.15s infinite";
+      overlay.innerText = "ANONYMOUS WAS HERE";
+      document.body.appendChild(overlay);
+      setTimeout(() => overlay.remove(), 2000);
+    }
+
+    const coreCommands = {
+      help: {
+        run() {
+          printSystem("Commands: help, cmds, open cmds.txt, clear, save, load, stats, browser, ddos, hack_game, whoami, fbi, play_snake");
+        }
+      },
+      cmds: {
+        run() {
+          printSystem("Core commands:");
+          Object.keys(coreCommands).forEach(c => printSystem("  " + c));
+          printSystem("Plus 400 filler commands.");
+        }
+      },
+      "open cmds.txt": {
+        run() { printSystem(CMDS_TXT); }
+      },
+      clear: {
+        run() { term.innerHTML = ""; }
+      },
+      save: {
+        run() {
+          const data = {
+            fame: state.fame,
+            groupName: state.groupName,
+            abilities: state.abilities,
+          };
+          localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+          printInfo("Progress saved.");
+        }
+      },
+      load: {
+        run() {
+          const raw = localStorage.getItem(SAVE_KEY);
+          if (!raw) return printWarn("No save found.");
+          try {
+            const data = JSON.parse(raw);
+            state.fame = data.fame || 0;
+            state.groupName = data.groupName || null;
+            state.abilities = data.abilities || { ddos: false, hackGames: false };
+            printInfo("Save loaded.");
+            fameCheck();
+          } catch {
+            printError("Failed to load save.");
+          }
+        }
+      },
+      stats: {
+        run() {
+          printSystem("=== STATS ===");
+          printSystem("Fame: " + state.fame);
+          printSystem("Group: " + (state.groupName || "none"));
+          printSystem("Abilities:");
+          printSystem("  DDoS: " + (state.abilities.ddos ? "UNLOCKED" : "locked"));
+          printSystem("  Hack Games: " + (state.abilities.hackGames ? "UNLOCKED" : "locked"));
+        }
+      },
+      browser: {
+        run() {
+          showWindow("win-browser");
+          printBrowserLog("Browser focused.");
+        }
+      },
+      ddos: {
+        run(args) {
+          const target = args.join(" ") || "unknown_target";
+          simulateDDOS(target);
+        }
+      },
+      hack_game: {
+        run(args) {
+          const game = args.join(" ") || "CyberStrike";
+          state.abilities.hackGames = true;
+          showWindow("win-games");
+          gameStatus.innerText = "Hacking " + game + "...\n";
+          setTimeout(() => {
+            gameStatus.innerText =
+              game + " hacked successfully!\n" +
+              "God Mode: ENABLED\n" +
+              "Infinite Ammo: ENABLED\n" +
+              "Max Stats: ENABLED\n\n" +
+              "Your character now dominates " + game + ".";
+            printGame("You hacked " + game + " and granted yourself:");
+            printGame("• God Mode");
+            printGame("• Infinite Ammo");
+            printGame("• Max Stats");
+            state.fame += 10;
+            fameCheck();
+          }, 1000);
+        }
+      },
+      whoami: {
+        run() {
+          printSystem("You are a rising underground hacker.");
+          if (state.groupName) printSystem("Group: " + state.groupName);
+        }
+      },
+      fbi: {
+        run() { showFBIWarning(); }
+      },
+      play_snake: {
+        run() {
+          printGame("You play SNAKE in the matrix, eating packets and dodging firewalls.");
+          printGame("Score: 1337");
+          state.fame += 2;
+          fameCheck();
+        }
+      },
+    };
+
+    for (let i = 1; i <= 400; i++) {
+      const name = "filler_" + String(i).padStart(3, "0");
+      coreCommands[name] = {
+        run(args) {
+          printSystem(name + " executed with args: " + (args && args.length ? args.join(" ") : "(none)"));
+        }
+      };
+    }
+
+    function handleCommand(line) {
+      if (!line.trim()) return;
+      printLine("guest@haxnet:~$ " + line, "system");
+      const parts = line.trim().split(/\s+/);
+      const cmd = parts[0].toLowerCase();
+      const args = parts.slice(1);
+      const command = coreCommands[cmd];
+      if (command) command.run(args);
+      else printError("Unknown command: " + cmd + " (try 'help' or 'cmds')");
+    }
+
+    termInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        const value = termInput.value;
+        termInput.value = "";
+        handleCommand(value);
+      }
+    });
+
+    const browserUrl = document.getElementById("browser-url");
+    const browserGo = document.getElementById("browser-go");
+    const browserContent = document.getElementById("browser-content");
+
+    function setSite(title, textLines) {
+      browserContent.innerHTML = "";
+      const t = document.createElement("div");
+      t.className = "site-title";
+      t.textContent = title;
+      browserContent.appendChild(t);
+      textLines.forEach(line => {
+        const p = document.createElement("div");
+        p.className = "site-text";
+        p.textContent = line;
+        browserContent.appendChild(p);
+      });
+    }
+
+    function simulateLoadingSite(msg, done) {
+      setSite("Loading...", [msg, "", "Loading [          ] 0%"]);
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        const bar = "[" + "#".repeat(progress / 10) + " ".repeat(10 - progress / 10) + "] " + progress + "%";
+        setSite("Loading...", [msg, "", "Loading " + bar]);
+        if (progress >= 100) {
+          clearInterval(interval);
+          done();
+        }
+      }, 120);
+    }
+
+    function openSite(queryRaw) {
+      const q = queryRaw.toLowerCase().trim();
+      if (!q) {
+        setSite("HAXNET Search", [
+          "Type something like '4chan', 'videomedia.com', 'video media', 'darknet', or 'news'."
+        ]);
+        return;
+      }
+
+      if (q.includes("4chan")) {
+        simulateLoadingSite("Connecting to 4chan...", () => {
+          state.groupName = "Anonymous";
+          state.fame += 20;
+          fameCheck();
+          setSite("4chan (simulated)", [
+            "You dive into a chaotic imageboard.",
+            "You find like-minded mischief-makers and form a group: Anonymous.",
+            "Your exploits start spreading across the net.",
+            "Fame +20."
+          ]);
+          printBrowserLog("Visited 4chan. Group 'Anonymous' formed. Fame +20.");
+        });
+      } else if (q.includes("videomedia") || q.includes("video media")) {
+        simulateLoadingSite("Opening VideoMedia...", () => {
+          state.fame += 15;
+          fameCheck();
+          setSite("VideoMedia – All About You", [
+            "Every video thumbnail is about you and your group.",
+            "Documentaries, conspiracy edits, fan-made tributes.",
+            "You are trending on every corner of the net.",
+            "Fame +15."
+          ]);
+          printBrowserLog("Visited VideoMedia. All videos are about you. Fame +15.");
+        });
+      } else if (q.includes("darknet") || q.includes("dark web")) {
+        simulateLoadingSite("Connecting to darknet nodes...", () => {
+          state.fame += 5;
+          fameCheck();
+          setSite("Darknet Market (simulated)", [
+            "You browse shady marketplaces and encrypted forums.",
+            "Your handle appears in whispered rumors.",
+            "Fame +5."
+          ]);
+          printBrowserLog("Visited darknet. Fame +5.");
+        });
+      } else if (q.includes("news")) {
+        simulateLoadingSite("Fetching news feeds...", () => {
+          state.fame += 5;
+          fameCheck();
+          setSite("Global News Network", [
+            "BREAKING: Unknown hacker collective disrupts major corporations.",
+            "Analysts speculate about a group calling itself 'Anonymous'.",
+            "Some say a single mastermind is behind it all...",
+            "Fame +5."
+          ]);
+          printBrowserLog("News sites are starting to talk about you. Fame +5.");
+        });
+      } else {
+        simulateLoadingSite("Searching for '" + q + "'...", () => {
+          state.fame += 3;
+          fameCheck();
+          setSite("Search results for '" + q + "'", [
+            "You find obscure forums, pastebins, and logs mentioning '" + q + "'.",
+            "You quietly absorb information and leave no trace.",
+            "Fame +3."
+          ]);
+          printBrowserLog("Searched for '" + q + "'. Fame +3.");
+        });
+      }
+    }
+
+    browserGo.addEventListener("click", () => {
+      openSite(browserUrl.value);
+    });
+    browserUrl.addEventListener("keydown", e => {
+      if (e.key === "Enter") openSite(browserUrl.value);
+    });
+
+    function simulateDDOS(target) {
+      printInfo("Launching DDoS on " + target + "...");
+      let packets = 0;
+      const max = 20;
+      const interval = setInterval(() => {
+        packets++;
+        printInfo("Sending packet " + packets + " to " + target + "...");
+        if (packets >= max) {
+          clearInterval(interval);
+          printWarn("Target " + target + " is overwhelmed. (Simulated only.)");
+          state.abilities.ddos = true;
+          state.fame += 5;
+          fameCheck();
+          showAnonymousGlitch();
+        }
+      }, 80);
+    }
+
+    function fameCheck() {
+      if (state.fame >= 30 && !state.groupName) {
+        state.groupName = "Anonymous";
+        printSystem("Your actions coalesce into a legend. You are now part of: Anonymous.");
+      }
+      if (state.fame >= 60 && !state.abilities.hackGames) {
+        printGame("Rumors spread that you can bend games to your will. Try 'hack_game'.");
+      }
+    }
+
+    function showFBIWarning() {
+      fbiPopup.style.display = "block";
+      printWarn("=== FBI WARNING ===");
+      printWarn("Your activities are being monitored. Or are they?");
+      printWarn("This is just a scare message. Nothing actually happens.");
+      printWarn("===================");
+      state.lastFBIWarning = Date.now();
+    }
+
+    fbiClose.addEventListener("click", () => {
+      fbiPopup.style.display = "none";
+    });
+
+    setInterval(() => {
+      const now = Date.now();
+      if (now - state.lastFBIWarning >= 3600000) {
+        showFBIWarning();
+      }
+    }, 10000);
+
+    document.querySelectorAll(".game-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const game = btn.getAttribute("data-game");
+        gameStatus.innerText =
+          "Launching " + game + "...\n" +
+          "Status: HACKED\n" +
+          "God Mode: ENABLED\n" +
+          "Infinite Ammo: ENABLED\n" +
+          "Max Stats: ENABLED\n\n" +
+          "You are unstoppable in " + game + ".";
+      });
+    });
+
+    function boot() {
+      printSystem("Booting HAXNET OS (Black & Green Hacker Edition)...");
+      printSystem("Type 'help' to begin. Type 'cmds' for full command list.");
+      showWindow("win-terminal");
+    }
+
+    boot();
+  </script>
+</body>
+</html>>
